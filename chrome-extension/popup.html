@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Tweet</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" class="x-logo">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+        <span>Quick Tweet</span>
+      </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen">
+      <div class="login-message">
+        <svg viewBox="0 0 24 24" class="info-icon">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+        <p>Please log in to Twitter/X in your browser first, then click refresh.</p>
+      </div>
+      <button id="refresh-btn" class="btn btn-primary" data-testid="refresh-auth-btn">
+        <svg viewBox="0 0 24 24" class="btn-icon">
+          <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+
+    <!-- Tweet Screen -->
+    <div id="tweet-screen" class="screen hidden">
+      <!-- User Info -->
+      <div class="user-info" data-testid="user-info-section">
+        <img id="profile-pic" src="" alt="Profile" class="profile-pic" data-testid="profile-picture">
+        <div class="user-details">
+          <span id="display-name" class="display-name" data-testid="display-name"></span>
+          <span id="username" class="username" data-testid="username"></span>
+        </div>
+      </div>
+
+      <!-- Tweet Composer -->
+      <div class="composer">
+        <textarea 
+          id="tweet-input" 
+          placeholder="What's happening?" 
+          maxlength="280"
+          data-testid="tweet-input"
+        ></textarea>
+        
+        <div class="composer-footer">
+          <div class="char-counter">
+            <svg viewBox="0 0 24 24" class="counter-ring">
+              <circle cx="12" cy="12" r="10" class="counter-bg"/>
+              <circle id="counter-progress" cx="12" cy="12" r="10" class="counter-fill"/>
+            </svg>
+            <span id="char-count" class="char-text" data-testid="char-counter">0</span>
+            <span class="char-limit">/280</span>
+          </div>
+          
+          <button id="tweet-btn" class="btn btn-tweet" disabled data-testid="post-tweet-btn">
+            <span class="btn-text">Post</span>
+            <svg viewBox="0 0 24 24" class="btn-icon send-icon">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Status Messages -->
+      <div id="status" class="status hidden" data-testid="status-message"></div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="screen hidden">
+      <div class="loader"></div>
+      <p>Loading...</p>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
