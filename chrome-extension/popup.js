@@ -1,173 +1,197 @@
 // DOM Elements
-const loginScreen = document.getElementById('login-screen');
-const tweetScreen = document.getElementById('tweet-screen');
-const loadingScreen = document.getElementById('loading-screen');
-const refreshBtn = document.getElementById('refresh-btn');
-const tweetInput = document.getElementById('tweet-input');
-const tweetBtn = document.getElementById('tweet-btn');
-const charCount = document.getElementById('char-count');
-const counterProgress = document.getElementById('counter-progress');
-const statusEl = document.getElementById('status');
-const profilePic = document.getElementById('profile-pic');
-const displayName = document.getElementById('display-name');
-const usernameEl = document.getElementById('username');
+const tweetInput = document.getElementById('tweetInput');
+const postBtn = document.getElementById('postBtn');
+const charCount = document.getElementById('charCount');
+const counterFill = document.getElementById('counterFill');
+const status = document.getElementById('status');
+const themeToggle = document.getElementById('themeToggle');
 
 const MAX_CHARS = 280;
-const CIRCLE_CIRCUMFERENCE = 62.83; // 2 * PI * 10
+const WARNING_THRESHOLD = 260;
+const CIRCUMFERENCE = 62.83; // 2 * PI * radius (10)
 
-// Show/hide screens
-function showScreen(screen) {
-  loginScreen.classList.add('hidden');
-  tweetScreen.classList.add('hidden');
-  loadingScreen.classList.add('hidden');
-  screen.classList.remove('hidden');
-}
-
-// Show status message
-function showStatus(message, type = 'info') {
-  statusEl.textContent = message;
-  statusEl.className = `status ${type}`;
-  statusEl.classList.remove('hidden');
-  
-  if (type === 'success') {
-    setTimeout(() => {
-      statusEl.classList.add('hidden');
-    }, 3000);
-  }
-}
-
-// Hide status
-function hideStatus() {
-  statusEl.classList.add('hidden');
-}
-
-// Update character counter
-function updateCharCounter() {
-  const length = tweetInput.value.length;
-  charCount.textContent = length;
-  
-  // Update progress ring
-  const progress = (length / MAX_CHARS) * CIRCLE_CIRCUMFERENCE;
-  counterProgress.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE - progress;
-  
-  // Update colors based on remaining chars
-  const remaining = MAX_CHARS - length;
-  
-  charCount.classList.remove('warning', 'error');
-  counterProgress.classList.remove('warning', 'error');
-  tweetInput.classList.remove('warning', 'error');
-  
-  if (remaining <= 0) {
-    charCount.classList.add('error');
-    counterProgress.classList.add('error');
-    tweetInput.classList.add('error');
-  } else if (remaining <= 20) {
-    charCount.classList.add('warning');
-    counterProgress.classList.add('warning');
-    tweetInput.classList.add('warning');
-  }
-  
-  // Enable/disable tweet button
-  tweetBtn.disabled = length === 0 || length > MAX_CHARS;
-}
-
-// Fetch user info from Twitter
-async function fetchUserInfo() {
-  return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({ action: 'getUserInfo' }, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-        return;
-      }
-      if (response.success) {
-        resolve(response.data);
-      } else {
-        reject(new Error(response.error || 'Failed to fetch user info'));
-      }
-    });
-  });
-}
-
-// Post tweet
-async function postTweet(text) {
-  return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({ action: 'postTweet', text }, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-        return;
-      }
-      if (response.success) {
-        resolve(response.data);
-      } else {
-        reject(new Error(response.error || 'Failed to post tweet'));
-      }
-    });
-  });
-}
-
-// Update UI with user info
-function updateUserUI(user) {
-  profilePic.src = user.profileImageUrl || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2371767b"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-  displayName.textContent = user.name || 'Twitter User';
-  usernameEl.textContent = `@${user.screenName || 'user'}`;
-}
+let isPosting = false;
 
 // Initialize
-async function init() {
-  showScreen(loadingScreen);
-  
-  try {
-    const userInfo = await fetchUserInfo();
-    updateUserUI(userInfo);
-    showScreen(tweetScreen);
+document.addEventListener('DOMContentLoaded', () => {
+  loadTheme();
+  tweetInput.focus();
+  updateCharCounter();
+});
+
+// Listen for status updates from background script
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.type === 'TWEET_STATUS') {
+    handleStatusUpdate(msg.status, msg.message, msg.detail);
+  }
+});
+
+function handleStatusUpdate(statusType, message, detail) {
+  switch (statusType) {
+    case 'opening':
+      showStatus('Opening X...', 'info');
+      break;
     
-    // Save user info to storage
-    chrome.storage.local.set({ userInfo });
-  } catch (error) {
-    console.error('Init error:', error);
-    showScreen(loginScreen);
+    case 'typing':
+      showStatus('Typing your tweet...', 'info');
+      break;
+    
+    case 'clicking':
+      showStatus('Clicking post button...', 'info');
+      break;
+    
+    case 'waiting':
+      showStatus('Waiting for confirmation...', 'info');
+      break;
+    
+    case 'success':
+      showStatus('Tweet posted successfully!', 'success');
+      isPosting = false;
+      // Auto-close after showing success
+      setTimeout(() => {
+        window.close();
+      }, 1500);
+      break;
+    
+    case 'error':
+      showStatus(message || 'Failed to post tweet', 'error');
+      resetPostingState();
+      break;
+    
+    default:
+      if (message) {
+        showStatus(message, 'info');
+      }
   }
 }
 
-// Event Listeners
-refreshBtn.addEventListener('click', () => {
-  init();
-});
+function resetPostingState() {
+  isPosting = false;
+  postBtn.classList.remove('loading');
+  postBtn.disabled = false;
+  tweetInput.disabled = false;
+  tweetInput.focus();
+}
 
-tweetInput.addEventListener('input', () => {
-  updateCharCounter();
-  hideStatus();
-});
+// Theme Management
+function loadTheme() {
+  chrome.storage.local.get(['theme'], (result) => {
+    const theme = result.theme || 'dark';
+    setTheme(theme);
+  });
+}
 
-tweetBtn.addEventListener('click', async () => {
-  const text = tweetInput.value.trim();
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  chrome.storage.local.set({ theme });
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  setTheme(newTheme);
   
-  if (!text || text.length > MAX_CHARS) return;
+  // Add a little animation feedback
+  themeToggle.style.transform = 'rotate(360deg)';
+  setTimeout(() => {
+    themeToggle.style.transform = '';
+  }, 300);
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+
+// Character Counter
+function updateCharCounter() {
+  const length = tweetInput.value.length;
+  const percentage = length / MAX_CHARS;
   
-  tweetBtn.disabled = true;
-  document.body.classList.add('posting');
-  hideStatus();
+  // Update text
+  charCount.textContent = length;
+  
+  // Update ring
+  const offset = CIRCUMFERENCE - (percentage * CIRCUMFERENCE);
+  counterFill.style.strokeDashoffset = Math.max(0, offset);
+  
+  // Remove all state classes
+  tweetInput.classList.remove('warning', 'over-limit');
+  counterFill.classList.remove('warning', 'over-limit');
+  charCount.classList.remove('warning', 'over-limit');
+  
+  // Add appropriate state class
+  if (length > MAX_CHARS) {
+    tweetInput.classList.add('over-limit');
+    counterFill.classList.add('over-limit');
+    charCount.classList.add('over-limit');
+    postBtn.disabled = true;
+  } else if (length >= WARNING_THRESHOLD) {
+    tweetInput.classList.add('warning');
+    counterFill.classList.add('warning');
+    charCount.classList.add('warning');
+    postBtn.disabled = isPosting;
+  } else {
+    postBtn.disabled = length === 0 || isPosting;
+  }
+}
+
+tweetInput.addEventListener('input', updateCharCounter);
+
+// Post Tweet
+async function postTweet() {
+  const tweet = tweetInput.value.trim();
+  
+  if (!tweet || tweet.length > MAX_CHARS || isPosting) {
+    return;
+  }
+  
+  isPosting = true;
+  
+  // Set loading state
+  postBtn.classList.add('loading');
+  postBtn.disabled = true;
+  tweetInput.disabled = true;
+  
+  showStatus('Starting...', 'info');
   
   try {
-    await postTweet(text);
-    showStatus('Tweet posted successfully!', 'success');
-    tweetInput.value = '';
-    updateCharCounter();
+    chrome.runtime.sendMessage({
+      type: 'POST_TWEET',
+      tweet
+    });
   } catch (error) {
-    console.error('Tweet error:', error);
-    showStatus(error.message || 'Failed to post tweet', 'error');
-  } finally {
-    document.body.classList.remove('posting');
-    tweetBtn.disabled = tweetInput.value.length === 0;
+    showStatus('Failed to start posting', 'error');
+    resetPostingState();
   }
-});
+}
+
+postBtn.addEventListener('click', postTweet);
 
 // Keyboard shortcut: Ctrl/Cmd + Enter to post
 tweetInput.addEventListener('keydown', (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !tweetBtn.disabled) {
-    tweetBtn.click();
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    if (!postBtn.disabled && !isPosting) {
+      postTweet();
+    }
   }
 });
 
-// Initialize on popup open
-init();
+// Status Messages
+function showStatus(message, type = 'info') {
+  const statusText = status.querySelector('.status-text');
+  if (statusText) {
+    statusText.textContent = message;
+  } else {
+    status.textContent = message;
+  }
+  status.className = `status ${type}`;
+}
+
+function hideStatus() {
+  status.classList.add('hidden');
+}
+
+// Auto-resize textarea
+tweetInput.addEventListener('input', () => {
+  tweetInput.style.height = 'auto';
+  tweetInput.style.height = Math.min(tweetInput.scrollHeight, 200) + 'px';
+});
