@@ -250,8 +250,32 @@
 
 let composeTabId = null;
 
-// Send status update to popup
+// Persist tweet state to storage so popup can read it on reopen
+let currentTweetText = '';  // Track in memory to avoid async reads
+
+function saveTweetState(status, message = '', tweetText = null) {
+  // Preserve tweet text across updates unless explicitly set
+  if (tweetText !== null) {
+    currentTweetText = tweetText;
+  }
+  const state = { status, message, tweetText: currentTweetText, timestamp: Date.now() };
+  chrome.storage.local.set({ tweetState: state });
+
+  // Auto-clear terminal states after 10 seconds
+  if (status === 'success' || status === 'error') {
+    setTimeout(() => {
+      chrome.storage.local.remove('tweetState');
+      currentTweetText = '';
+    }, 10000);
+  }
+}
+
+// Send status update to popup AND persist to storage
 function sendStatusToPopup(status, message = '', detail = '') {
+  // Persist to storage (preserves existing tweetText)
+  saveTweetState(status, message || detail);
+
+  // Also try sending to popup (may be closed)
   chrome.runtime.sendMessage({
     type: 'TWEET_STATUS',
     status,
@@ -265,6 +289,8 @@ function sendStatusToPopup(status, message = '', detail = '') {
 chrome.runtime.onMessage.addListener((msg, sender) => {
   // Step 1: Open X compose
   if (msg.type === "POST_TWEET") {
+    // Save the tweet text so popup can restore it
+    currentTweetText = msg.tweet;
     sendStatusToPopup('opening');
     
     chrome.tabs.create(
