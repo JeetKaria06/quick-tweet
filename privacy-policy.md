@@ -21,10 +21,14 @@ Quick Tweet does **not** collect, store, transmit, or sell any personal data.
 
 ## Local Storage
 
-Quick Tweet may store minimal user preferences locally in the browser, such as:
+Quick Tweet may store minimal data locally in the browser, such as:
+
 - Theme selection (dark or light mode)
+- Stashed tweet drafts (saved by the user for later posting)
+- Tweet posting status (to restore progress if the popup is reopened)
 
 This data:
+
 - Remains on the user’s device
 - Is never transmitted externally
 - Can be removed by uninstalling the extension
@@ -32,6 +36,7 @@ This data:
 ## Third-Party Websites
 
 The extension interacts only with:
+
 - `https://x.com`
 - `https://twitter.com` (for legacy redirects)
 
@@ -40,8 +45,9 @@ These interactions are required solely to enable tweet composition and posting v
 ## User Control
 
 All actions performed by Quick Tweet are:
+
 - Explicitly initiated by the user
-- Limited to composing and posting a tweet
+- Limited to composing, saving drafts, and posting a tweet
 
 The extension does not run in the background without user interaction.
 
