@@ -692,29 +692,53 @@ body {
 
 /* Footer */
 .footer {
-  padding: 12px 20px;
+  padding: 12px 20px 16px;
+  background: var(--bg-primary);
   border-top: 1px solid var(--border);
-  text-align: center;
-  transition: border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.footer-hint {
+  position: relative;
+  height: 16px; /* Fixed height to prevent jumping */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .footer-text {
-  font-size: 12px;
+  position: absolute;
+  font-size: 11px;
   color: var(--text-secondary);
+  font-weight: 500;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.footer-text.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Hide the overlay hint if we're ALREADY IN the overlay */
+body.overlay-mode .footer-hint .footer-text:nth-child(2) {
+  display: none !important;
 }
 
 kbd {
   display: inline-block;
-  padding: 2px 6px;
-  margin: 0 2px;
-  background: var(--bg-tertiary);
+  padding: 2px 5px;
+  background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 4px;
   font-family: inherit;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
   color: var(--text-secondary);
-  transition: all 0.3s ease;
+  margin: 0 2px;
+  line-height: 1;
 }
 
 /* Animations */

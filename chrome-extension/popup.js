@@ -463,3 +463,20 @@ function confirmDelete(card, draft) {
     setTimeout(() => renderDrafts(), 200);
   });
 }
+
+// ===== FOOTER HINT ROTATION =====
+function initFooterHints() {
+  if (isOverlay) return; // Overlay CSS hides the second hint anyway
+  
+  const hints = document.querySelectorAll('.footer-text');
+  if (hints.length < 2) return;
+  
+  let currentHint = 0;
+  setInterval(() => {
+    hints[currentHint].classList.remove('active');
+    currentHint = (currentHint + 1) % hints.length;
+    hints[currentHint].classList.add('active');
+  }, 4000);
+}
+
+document.addEventListener('DOMContentLoaded', initFooterHints);
