@@ -19,14 +19,44 @@ const CIRCUMFERENCE = 62.83;
 
 let isPosting = false;
 let currentTab = 'compose';
+const isOverlay = new URLSearchParams(window.location.search).get('mode') === 'overlay';
+
+// Close helper — works for both popup and overlay
+function closeWindow() {
+  if (isOverlay) {
+    window.parent.postMessage('QUICK_TWEET_CLOSE', '*');
+  } else {
+    window.close();
+  }
+}
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  if (isOverlay) {
+    document.body.classList.add('overlay-mode');
+    
+    // Broadcast content size changes to parent overlay for dynamic resizing
+    const observer = new ResizeObserver(() => {
+      window.parent.postMessage({
+        type: 'QUICK_TWEET_RESIZE',
+        height: document.body.offsetHeight
+      }, '*');
+    });
+    observer.observe(document.body);
+  }
+
   loadTheme();
   tweetInput.focus();
   updateCharCounter();
   restoreTweetState();
   updateStashCount();
+
+  // Escape to close overlay
+  if (isOverlay) {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeWindow();
+    });
+  }
 });
 
 // ===== TWEET STATE PERSISTENCE =====
@@ -88,7 +118,7 @@ function handleStatusUpdate(statusType, message, detail) {
       tweetInput.value = '';
       chrome.storage.local.remove('tweetState');
       setTimeout(() => {
-        window.close();
+        closeWindow();
       }, 1500);
       break;
     case 'error':

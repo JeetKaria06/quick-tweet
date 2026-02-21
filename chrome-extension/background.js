@@ -270,19 +270,19 @@ function saveTweetState(status, message = '', tweetText = null) {
   }
 }
 
-// Send status update to popup AND persist to storage
+// Send status update to popup/overlay AND persist to storage
 function sendStatusToPopup(status, message = '', detail = '') {
   // Persist to storage (preserves existing tweetText)
   saveTweetState(status, message || detail);
 
-  // Also try sending to popup (may be closed)
+  // Send to popup or overlay iframe (both are extension pages)
   chrome.runtime.sendMessage({
     type: 'TWEET_STATUS',
     status,
     message,
     detail
   }).catch(() => {
-    // Popup might be closed, ignore error
+    // Popup/overlay might be closed, ignore error
   });
 }
 
@@ -340,5 +340,18 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
     sendStatusToPopup('error', msg.error || 'Failed to post tweet');
     chrome.tabs.remove(composeTabId);
     composeTabId = null;
+  }
+});
+
+// ===== KEYBOARD SHORTCUT OVERLAY =====
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'open-quick-tweet') {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab && tab.id && !tab.url.startsWith('chrome://')) {
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['overlay.js']
+      });
+    }
   }
 });
