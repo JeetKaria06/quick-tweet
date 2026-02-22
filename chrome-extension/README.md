@@ -111,7 +111,7 @@ All stash data is stored locally in your browser — nothing leaves your machine
 
 ## License
 
-MIT License - Feel free to modify and distribute!
+**Proprietary** - All Rights Reserved. You may not use, copy, modify, distribute, or sell this software without explicit permission.
 
 ---
 
