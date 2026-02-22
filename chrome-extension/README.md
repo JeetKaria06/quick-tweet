@@ -9,7 +9,8 @@ A lightweight Chrome extension that lets you tweet on the go without opening Twi
 ✨ **Session-based Authentication** - Uses your existing Twitter login, no API keys needed  
 📝 **Clean Tweet Composer** - Minimal text area with character counter  
 🔖 **Stash** - Save tweet ideas for later, edit, delete, or post them when ready  
-⚡ **Keyboard Shortcut** - Press `Ctrl/Cmd + Enter` to post instantly  
+🌍 **Cinematic Overlay** - Open Quick Tweet anywhere as a beautiful centered modal  
+⚡ **Keyboard Shortcuts** - Press `Alt/⌥ + Shift + T` to open, `Ctrl/⌘ + Enter` to post instantly  
 🎨 **Light & Dark Theme** - Toggle between themes to match your preference  
 📊 **Real-time Character Counter** - Visual progress ring with 280 character limit  
 🔄 **Persistent Status** - Reopen the popup mid-post to see progress
@@ -43,6 +44,15 @@ Click the extension icon in your toolbar and start tweeting!
 4. The tab closes automatically and you get a success confirmation
 
 **No API keys or developer accounts required!**
+
+## Cinematic Overlay
+
+Instead of clicking the extension icon, you can bring up Quick Tweet **on any webpage** as a beautiful centered modal.
+
+- Press `Alt/⌥ + Shift + T` on any page to open the overlay
+- It features the exact same UI as the popup, but wider and centered on your screen
+- The background page is locked and blurred so you can focus on writing
+- Press `Esc` or click outside to close it instantly
 
 ## Stash — Save Ideas for Later
 
